@@ -9,8 +9,14 @@
           },
           "debug": false
         }
-      ]
+      ],
+       "@babel/preset-react",
     ],
+    "env": {
+      "development": {
+        "presets": [["@babel/preset-react", { "development": true }]]
+      }
+    },
     "plugins": ["@babel/plugin-transform-runtime"],
     "minified": false
   }

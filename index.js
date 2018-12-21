@@ -1,9 +1,8 @@
-import styles from "./index.css";
+import React from "react";
+import "./index.css";
 
-async function foo() {
-  return await 1;
-}
+const MyComponent = () => {
+  return <h1>Hello world</h1>;
+};
 
-foo().then(val => {
-  console.log(val);
-});
+export default MyComponent;

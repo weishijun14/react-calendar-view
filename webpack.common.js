@@ -4,10 +4,10 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const devMode = process.env.NODE_ENV !== "production";
 
 module.exports = {
-  entry: "./index.js",
+  entry: "./example/index.js",
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./index.html"
+      template: "./example/index.html"
     })
   ],
   module: {
@@ -19,7 +19,7 @@ module.exports = {
           loader: "babel-loader",
           options: {
             cacheDirectory: true,
-            presets: ['@babel/preset-env']
+            presets: ["@babel/preset-env"]
           }
         }
       },
