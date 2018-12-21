@@ -4,6 +4,6 @@ async function foo() {
   return await 1;
 }
 
-foo().then(function(val) {
+foo().then(val => {
   console.log(val);
 });

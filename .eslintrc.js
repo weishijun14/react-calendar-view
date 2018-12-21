@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ["airbnb", "eslint-config-umi"],
+  extends: ["plugin:prettier/recommended"],
   parser: 'babel-eslint',
   env: {
     browser: true,
@@ -13,6 +13,7 @@ module.exports = {
     APP_TYPE: true,
   },
   rules: {
+    'prettier/prettier': "error",
     'max-len': ["error", { "code": 200 }],
     'react/jsx-filename-extension': [1, { extensions: ['.js'] }],
     'react/jsx-wrap-multilines': 0,
