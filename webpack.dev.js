@@ -8,7 +8,14 @@ module.exports = merge(common, {
   devtool: "inline-source-map",
   devServer: {
     contentBase: "./dist", // publicPath 了解
-    hot: true
+    hot: true,
+    open: false
+  },
+  resolve: {
+    alias: {
+      "react-calendar-view$": path.resolve(__dirname, "./src/index.js"),
+      "react-calendar-view/lib": path.resolve(__dirname, "./src")
+    }
   },
   plugins: [
     new webpack.NamedModulesPlugin(),

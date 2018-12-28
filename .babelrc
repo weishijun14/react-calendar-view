@@ -14,9 +14,12 @@
     ],
     "env": {
       "development": {
-        "presets": [["@babel/preset-react", { "development": true }]]
+        "presets": [
+          ["@babel/preset-react", { "development": true }], 
+          ["@emotion/babel-preset-css-prop", {"sourceMap": true}]
+        ],
       }
     },
-    "plugins": ["@babel/plugin-transform-runtime"],
+    "plugins": ["@babel/plugin-transform-runtime", "@babel/plugin-proposal-class-properties"],
     "minified": false
   }

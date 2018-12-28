@@ -6,16 +6,18 @@
   "scripts": {
     "test": "jest",
     "build": "cross-env NODE_ENV=production webpack --config webpack.prod.js",
-    "start": "webpack-dev-server --open --config webpack.dev.js"
+    "start": "webpack-dev-server --config webpack.dev.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.2.3",
     "@babel/plugin-transform-runtime": "^7.2.0",
     "@babel/preset-env": "^7.2.3",
     "@babel/preset-react": "^7.0.0",
+    "@emotion/babel-preset-css-prop": "^10.0.5",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
     "babel-jest": "^23.6.0",
@@ -45,6 +47,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.2.0",
+    "@emotion/core": "^10.0.5",
+    "@emotion/styled": "^10.0.5",
     "react": "^16.7.0",
     "react-dom": "^16.7.0"
   }
