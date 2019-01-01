@@ -1,9 +1,10 @@
 // TODO: 全局颜色变量。
 // TODO: memoize()
 import React, { Component } from "react";
-
 import { css } from "@emotion/core";
 import styled from "@emotion/styled";
+
+import Selection from "./Selection";
 
 const Container = styled.div(props => ({
   display: "flex",
@@ -23,6 +24,10 @@ const HorizenLine = styled.div(props => {
     top: `${props.num}%`
   };
 });
+
+const Div = styled.div`
+  background: red;
+`;
 
 const VerticalLine = styled.div(props => {
   return {
@@ -70,6 +75,9 @@ export default class DragTest extends Component {
         {weekArr.map((item, index) => {
           return <VerticalLine height={height} key={index} />;
         })}
+        <Selection>
+          <span>123</span>
+        </Selection>
       </Container>
     );
   }
