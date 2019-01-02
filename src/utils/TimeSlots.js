@@ -17,7 +17,7 @@ export function getSlotMatrics({ min: start, max: end, step, timeslots }) {
   for (let grp = 0; grp < numGroups; grp += 1) {
     groups[grp] = Array.from({ length: timeslots });
     for (let slot = 0; slot < timeslots; slot += 1) {
-      const slotIdx = NP.plus(NP.times(grp, timeslots), slot);
+      const slotIdx = NP.plus(NP.times(grp, timeslots), slot) + 1;
       const minutesFromStart = slotIdx * step;
       slots[slotIdx] = groups[grp][slot] = new Date(
         start.getFullYear(),
