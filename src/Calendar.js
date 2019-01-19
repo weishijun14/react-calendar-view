@@ -5,7 +5,8 @@ import transform from "lodash.transform";
 
 export default class Calendar extends Component {
   static defaultProps = {
-    step: 30
+    step: 30,
+    getNow: () => new Date()
   };
 
   getViews = () => {
@@ -28,10 +29,12 @@ export default class Calendar extends Component {
   };
 
   render() {
+    let { date: current, getNow } = this.props;
     const View = this.getView();
+    current = current || getNow();
     return (
-      <div>
-        <View {...this.props} />
+      <div css={{ height: "100%" }}>
+        <View {...this.props} date={current} />
       </div>
     );
   }

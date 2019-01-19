@@ -6,7 +6,13 @@ import NP from "number-precision";
 const TimeSlotGroupWrapper = styled.div(props => {
   return {
     position: "absolute",
-    top: `${props.heightPercent}%`
+    top: `${props.heightPercent}%`,
+    width: "100%",
+    textAlign: "center",
+    "& div": {
+      position: "relative",
+      bottom: "8px"
+    }
   };
 });
 
