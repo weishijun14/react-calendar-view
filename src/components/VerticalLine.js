@@ -27,7 +27,7 @@ const SelectionArea = styled.div(props => {
     left: 0,
     right: 0,
     top: `${props.top}%`,
-    bottom: `${100 - props.bottom}%`,
+    bottom: `${props.bottom}%`,
     backgroundColor: "#bdbdbd94"
   };
 });
@@ -36,12 +36,14 @@ export default class VerticalLine extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      startGenePoint: 0,
-      startRelativePoint: 0,
+      // startGenePoint: 0,
+      // startRelativePoint: 0,
       selectedTop: null,
       selectedBottom: null,
       showSelectionBox: false
     };
+    this.startGenePoint = 0;
+    this.selectedTop = 0;
     this.myRef = React.createRef();
     this.memoCalculateStart = memoizeOne(this._calculatePostion, isEqual);
   }
@@ -61,39 +63,46 @@ export default class VerticalLine extends Component {
   };
 
   _onMouseDown = e => {
+    e.stopPropagation();
     // TODO:
     // 1. 当鼠标按下，并移动Y轴一定距离（差值）之后，开始计算鼠标当前坐标所占高度百分比。
     // 2. 用百分比动态对比行线百分比，超过即给该行覆盖颜色。
     // 3. 支持回退。
     // 转换为数学 即判断该百分比数字，是否落在两个百分比区间中。
-    this.setState({
-      startGenePoint: e.nativeEvent.offsetY,
-      startRelativePoint: e.nativeEvent.clientY
-    });
+    // this.setState({
+    //   startGenePoint: e.nativeEvent.offsetY,
+    //   startRelativePoint: e.nativeEvent.clientY
+    // });
+    this.startGenePoint = e.nativeEvent.offsetY;
+    this.startRelativePoint = e.nativeEvent.clientY;
     window.document.addEventListener("mousemove", this._onMouseMove);
     window.document.addEventListener("mouseup", this._onMouseUp);
   };
 
   _onMouseMove = e => {
-    // var endPoint = {
-    //   x: e.clientX,
-    //   y: e.clientY
-    // };
-    
-    const startPer = this.computerDistanceToPercent(
-      this.state.startGenePoint,
-      this.height
-    );
+    // 记录移动距离(百分比)， 调用计算选框方法(起始点，移动距离)。
+    e.stopPropagation();
+    // const { startRelativePoint } = this.state;
+    const activeDistance = 10;
+    if (
+      Math.abs(NP.minus(e.clientY, this.startRelativePoint)) >= activeDistance
+    ) {
+      const startPercent = this.computerDistanceToPercent(
+        this.startGenePoint,
+        this.height
+      );
 
-    const distancePer = this.computerDistanceToPercent(
-      NP.minus(e.clientY, this.state.startRelativePoint),
-      this.height
-    );
+      const distancePerent = this.computerDistanceToPercent(
+        NP.minus(e.clientY, this.startRelativePoint),
+        this.height
+      );
 
-    this._calculateSelectionBox(startPer, distancePer);
+      this._calculateSelectionBox(startPercent, distancePerent);
+    }
   };
 
   _onMouseUp = e => {
+    e.stopPropagation();
     window.document.removeEventListener("mouseup", this._onMouseUp);
     window.document.removeEventListener("mousemove", this._onMouseMove);
   };
@@ -106,43 +115,43 @@ export default class VerticalLine extends Component {
         parseFloat(point) >= heightPercentArr[i] &&
         parseFloat(point) < heightPercentArr[i + 1]
       ) {
-        return (p =
-          startOrStop === "start"
-            ? heightPercentArr[i]
-            : heightPercentArr[i + 1]);
-      } else {
-        p = heightPercentArr[0];
+        if (startOrStop === "start") {
+          return (p = heightPercentArr[i]);
+        }
+        return (p = heightPercentArr[i + 1]);
       }
     }
-    return p;
   };
 
   _calculateSelectionBox = (startPoint, distancePer) => {
     const { heightPercentArr } = this.props;
-    const newHeightPercentArr = [0].concat(heightPercentArr);
+    const beginWithZeroHeightPercentArr = [0].concat(heightPercentArr);
+    let selectedTop;
+    let selectedBottom;
+    const point1 = distancePer > 0 ? startPoint : startPoint;
+    const point2 = NP.plus(startPoint, distancePer);
+    const arr = beginWithZeroHeightPercentArr;
+    const str1 = distancePer > 0 ? "start" : "stop";
+    const str2 = distancePer > 0 ? "stop" : "start";
+    const resultWithMemo = this.memoCalculateStart(point1, arr, str1);
+    const resultWithoutMemo = this._calculatePostion(point2, arr, str2);
 
-    const startPosition = this.memoCalculateStart(
-      startPoint,
-      newHeightPercentArr,
-      "start"
-    );
+    if (distancePer > 0) {
+      selectedTop = resultWithMemo;
+      selectedBottom = 100 - resultWithoutMemo;
+    } else {
+      selectedBottom = 100 - resultWithMemo;
+      selectedTop = resultWithoutMemo;
+    }
 
-    const stopPosition = this._calculatePostion(
-      NP.plus(startPoint, distancePer),
-      heightPercentArr,
-      "stop"
-    );
-
-    const start = startPosition < stopPosition ? startPosition : stopPosition;
-    const end = stopPosition > startPosition ? stopPosition : startPosition;
     this.setState({
-      selectedTop: start,
-      selectedBottom: end,
+      selectedTop,
+      selectedBottom,
       showSelectionBox: true
     });
   };
 
-  renderSelectionArea = () => {
+  _renderSelectionArea = () => {
     const { selectedTop, selectedBottom } = this.state;
     return <SelectionArea top={selectedTop} bottom={selectedBottom} />;
   };
@@ -153,7 +162,7 @@ export default class VerticalLine extends Component {
       <Line onMouseDown={this._onMouseDown} ref={this.myRef}>
         {/* {this.renderBackground()}*/}
         {/* {this.renderSelectionArea()} */}
-        {showSelectionBox ? this.renderSelectionArea() : null}
+        {showSelectionBox ? this._renderSelectionArea() : null}
         {/*{this.renderEvent()} */}
       </Line>
     );
