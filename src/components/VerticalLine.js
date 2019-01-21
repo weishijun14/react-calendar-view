@@ -105,6 +105,9 @@ export default class VerticalLine extends Component {
     e.stopPropagation();
     window.document.removeEventListener("mouseup", this._onMouseUp);
     window.document.removeEventListener("mousemove", this._onMouseMove);
+    // 1. 构造器里面的相关项置空。
+    // 2. 选框状态 --> 待确认状态。
+    // 3. 弹出对话框。
   };
 
   // TODO: need recalculate start & end. start: 0-100, end: 100-0;
@@ -143,6 +146,13 @@ export default class VerticalLine extends Component {
       selectedBottom = 100 - resultWithMemo;
       selectedTop = resultWithoutMemo;
     }
+
+    //  selectedTop in heightPercentArr get startTime
+    //  selectedBottom in heightPercentArr get endTime
+    // console.log(selectedTop, "selectedTop");
+    // console.log(selectedBottom, "selectedBottom");
+    console.log(heightPercentArr, "heightPercentArr");
+    // console.log(this.props);
 
     this.setState({
       selectedTop,

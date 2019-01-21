@@ -72,7 +72,7 @@ export default class TimeGrid extends Component {
   };
 
   renderVertical = (range, heightPercentArr) => {
-    console.log(range, "range");
+    // console.log(range, "range");
     return range.map((item, index) => {
       return (
         <VerticalLine

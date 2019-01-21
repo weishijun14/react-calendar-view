@@ -19,10 +19,11 @@ export default class TimeGutter extends Component {
     return (
       <TimeSlotGroupWrapper groupsLength={groupsLength} timeslots={timeslots}>
         {slotMetrics.groups.map((item, idx) => {
+          const i = slotMetrics.groups.length - 1 !== idx ? item : [item[0]];
           return (
             <TimeSlotGroup
               key={idx}
-              group={item}
+              group={i}
               groupsLength={groupsLength}
               heightPercent={NP.times(
                 NP.plus(idx, 1),
