@@ -71,14 +71,16 @@ export default class TimeGrid extends Component {
     });
   };
 
-  renderVertical = (range, heightPercentArr) => {
-    // console.log(range, "range");
+  renderVertical = (range, heightPercentArr, flattenedArr, step) => {
     return range.map((item, index) => {
       return (
         <VerticalLine
           key={index}
+          item={item}
           onMouseDown={this._onMouseDown}
           heightPercentArr={heightPercentArr}
+          flattenedArr={flattenedArr}
+          step={step}
         />
       );
     });
@@ -90,7 +92,10 @@ export default class TimeGrid extends Component {
     const groupsLength = this.slotMetrics.groups.length;
     const flattenedArr = flatten(this.slotMetrics.groups);
     const heightPercentArr = flattenedArr.map((item, idx) => {
-      return NP.times(NP.plus(idx, 1), NP.divide(100, groupsLength * 2));
+      return NP.times(
+        NP.plus(idx, 1),
+        NP.divide(100, groupsLength * timeslots)
+      );
     });
     return (
       <GridContainer>
@@ -105,7 +110,7 @@ export default class TimeGrid extends Component {
           />
           <ContentContainer>
             {this.renderHorizen(heightPercentArr)}
-            {this.renderVertical(range, heightPercentArr)}
+            {this.renderVertical(range, heightPercentArr, flattenedArr, step)}
           </ContentContainer>
         </TimeGridBody>
       </GridContainer>

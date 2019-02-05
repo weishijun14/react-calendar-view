@@ -2,6 +2,11 @@ import React, { Component } from "react";
 import NP from "number-precision";
 import memoizeOne from "memoize-one";
 import isEqual from "lodash.isequal";
+
+// import followModal from "./FollowModal";
+// import portalCantainer from "./PortalCantainer";
+import Event from "./Event";
+import "./VerticalLine.css";
 import styled from "@emotion/styled";
 
 import { toPercent } from "../utils/utils";
@@ -21,6 +26,16 @@ const Line = styled.div(props => {
   };
 });
 
+const EventContainer = styled.div(props => {
+  return {
+    position: "absolute",
+    right: "10px",
+    left: 0,
+    top: 0,
+    bottom: 0
+  };
+});
+
 const SelectionArea = styled.div(props => {
   return {
     position: "absolute",
@@ -36,15 +51,16 @@ export default class VerticalLine extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // startGenePoint: 0,
-      // startRelativePoint: 0,
       selectedTop: null,
       selectedBottom: null,
-      showSelectionBox: false
+      showSelectionBox: false,
+      unconfirmedTimes: {},
+      tempStatus1: false
     };
     this.startGenePoint = 0;
     this.selectedTop = 0;
     this.myRef = React.createRef();
+    this.ref = React.createRef();
     this.memoCalculateStart = memoizeOne(this._calculatePostion, isEqual);
   }
 
@@ -103,11 +119,58 @@ export default class VerticalLine extends Component {
 
   _onMouseUp = e => {
     e.stopPropagation();
+    const { heightPercentArr } = this.props;
+    const { selectedTop, selectedBottom } = this.state;
+    const beginWithZeroHeightPercentArr = [0].concat(heightPercentArr);
     window.document.removeEventListener("mouseup", this._onMouseUp);
     window.document.removeEventListener("mousemove", this._onMouseMove);
+    // 1. 将state => time arr pushed in;
+    const result = this._shapeToTimeElement(
+      selectedTop,
+      selectedBottom,
+      beginWithZeroHeightPercentArr
+    );
+
+    console.log(this.ref.current.getBoundingClientRect(), 23333);
+    this.setState({
+      unconfirmedTimes: result,
+      showSelectionBox: false,
+      tempStatus1: true
+    });
     // 1. 构造器里面的相关项置空。
+    this.startGenePoint = 0;
+    this.selectedTop = 0;
+
     // 2. 选框状态 --> 待确认状态。
-    // 3. 弹出对话框。
+    // 3. 弹出对话框。 (这一步必须体现) (弹窗自动判断从左出现还是从右。)
+    // 4. 点确定返回值。 点取消无返回值。
+    // 5. 从props中取得events 数组。 遍历。若无，则空。
+  };
+
+  _shapeToTimeElement = (top, bottom, heightPercent) => {
+    const { item, flattenedArr, step } = this.props;
+    const firstTimeElement = flattenedArr[0];
+    const stepBeforeFirstTimeElement = firstTimeElement.getMinutes() - step;
+    const newFirstTimeElement = firstTimeElement.setMinutes(
+      stepBeforeFirstTimeElement
+    );
+    const newFlattenedArr = [new Date(newFirstTimeElement)].concat(
+      flattenedArr
+    );
+
+    // TODO: based (top, bottom) in heightPercent, get index. then based index get newFlattenedArr's value.
+    let startTime1 = newFlattenedArr[heightPercent.indexOf(top)];
+    let startTime2 = startTime1.setDate(item.toDate().getDate());
+    let startTime3 = new Date(startTime2).setMonth(item.toDate().getMonth());
+
+    let endTime1 = newFlattenedArr[heightPercent.indexOf(100 - bottom)];
+    let endTime2 = endTime1.setDate(item.toDate().getDate());
+    let endTime3 = new Date(endTime2).setMonth(item.toDate().getMonth());
+
+    return {
+      startTime: new Date(startTime3),
+      endTime: new Date(endTime3)
+    };
   };
 
   // TODO: need recalculate start & end. start: 0-100, end: 100-0;
@@ -131,7 +194,7 @@ export default class VerticalLine extends Component {
     const beginWithZeroHeightPercentArr = [0].concat(heightPercentArr);
     let selectedTop;
     let selectedBottom;
-    const point1 = distancePer > 0 ? startPoint : startPoint;
+    const point1 = startPoint;
     const point2 = NP.plus(startPoint, distancePer);
     const arr = beginWithZeroHeightPercentArr;
     const str1 = distancePer > 0 ? "start" : "stop";
@@ -151,9 +214,9 @@ export default class VerticalLine extends Component {
     //  selectedBottom in heightPercentArr get endTime
     // console.log(selectedTop, "selectedTop");
     // console.log(selectedBottom, "selectedBottom");
-    console.log(heightPercentArr, "heightPercentArr");
+    // console.log(heightPercentArr, "heightPercentArr");
     // console.log(this.props);
-
+    // console.log(selectedBottom);
     this.setState({
       selectedTop,
       selectedBottom,
@@ -163,17 +226,39 @@ export default class VerticalLine extends Component {
 
   _renderSelectionArea = () => {
     const { selectedTop, selectedBottom } = this.state;
-    return <SelectionArea top={selectedTop} bottom={selectedBottom} />;
+    return (
+      <SelectionArea top={selectedTop} bottom={selectedBottom} ref={this.ref} />
+    );
+  };
+
+  _renderEvent = arr => {
+    const { unconfirmedTimes, selectedTop, selectedBottom } = this.state;
+    const newArr = [...arr, [unconfirmedTimes]];
+    console.log(unconfirmedTimes, "newArr");
+    return (
+      Object.keys(unconfirmedTimes).length &&
+      newArr.map(i => {
+        return (
+          <Event
+            key={i}
+            top={selectedTop}
+            bottom={selectedBottom}
+            draggable="true"
+          />
+        );
+      })
+    );
   };
 
   render() {
-    const { showSelectionBox } = this.state;
+    const { showSelectionBox, tempStatus1 } = this.state;
     return (
       <Line onMouseDown={this._onMouseDown} ref={this.myRef}>
         {/* {this.renderBackground()}*/}
-        {/* {this.renderSelectionArea()} */}
-        {showSelectionBox ? this._renderSelectionArea() : null}
-        {/*{this.renderEvent()} */}
+        {/* 建议events render 单独写一个子组件。 */}
+        {showSelectionBox && this._renderSelectionArea()}
+        <EventContainer>{this._renderEvent([])}</EventContainer>
+        {/* {tempStatus1 && <FollowModal />} */}
       </Line>
     );
   }

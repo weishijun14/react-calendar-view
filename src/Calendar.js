@@ -5,7 +5,6 @@ import transform from "lodash.transform";
 
 export default class Calendar extends Component {
   static defaultProps = {
-    step: 30,
     getNow: () => new Date()
   };
 

@@ -17,7 +17,7 @@ Week.range = date => {
   let days = [];
   while (current.isBefore(end)) {
     days.push(current);
-    current = current.add(1, "days");
+    current = moment(current).add(1, "days");
   }
   return days;
 };

@@ -55,6 +55,8 @@
     "memoize-one": "^5.0.0",
     "moment": "^2.23.0",
     "number-precision": "^1.2.1",
+    "prop-types": "^15.6.2",
+    "rc-tooltip": "^3.7.3",
     "react": "^16.7.0",
     "react-dom": "^16.7.0"
   }
