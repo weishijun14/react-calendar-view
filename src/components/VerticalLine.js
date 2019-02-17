@@ -3,8 +3,6 @@ import NP from "number-precision";
 import memoizeOne from "memoize-one";
 import isEqual from "lodash.isequal";
 
-// import followModal from "./FollowModal";
-// import portalCantainer from "./PortalCantainer";
 import Event from "./Event";
 import "./VerticalLine.css";
 import styled from "@emotion/styled";
@@ -55,7 +53,8 @@ export default class VerticalLine extends Component {
       selectedBottom: null,
       showSelectionBox: false,
       unconfirmedTimes: {},
-      tempStatus1: false
+      start: null,
+      end: null
     };
     this.startGenePoint = 0;
     this.selectedTop = 0;
@@ -79,6 +78,7 @@ export default class VerticalLine extends Component {
   };
 
   _onMouseDown = e => {
+    console.log(1);
     e.stopPropagation();
     // TODO:
     // 1. 当鼠标按下，并移动Y轴一定距离（差值）之后，开始计算鼠标当前坐标所占高度百分比。
@@ -96,6 +96,7 @@ export default class VerticalLine extends Component {
   };
 
   _onMouseMove = e => {
+    console.log(2);
     // 记录移动距离(百分比)， 调用计算选框方法(起始点，移动距离)。
     e.stopPropagation();
     // const { startRelativePoint } = this.state;
@@ -118,6 +119,7 @@ export default class VerticalLine extends Component {
   };
 
   _onMouseUp = e => {
+    console.log(3);
     e.stopPropagation();
     const { heightPercentArr } = this.props;
     const { selectedTop, selectedBottom } = this.state;
@@ -131,11 +133,10 @@ export default class VerticalLine extends Component {
       beginWithZeroHeightPercentArr
     );
 
-    console.log(this.ref.current.getBoundingClientRect(), 23333);
+    // console.log(this.ref.current.getBoundingClientRect(), 23333);
     this.setState({
-      unconfirmedTimes: result,
-      showSelectionBox: false,
-      tempStatus1: true
+      unconfirmedTimes: { ...result, unconfirmed: true },
+      showSelectionBox: false
     });
     // 1. 构造器里面的相关项置空。
     this.startGenePoint = 0;
@@ -147,16 +148,64 @@ export default class VerticalLine extends Component {
     // 5. 从props中取得events 数组。 遍历。若无，则空。
   };
 
-  _shapeToTimeElement = (top, bottom, heightPercent) => {
-    const { item, flattenedArr, step } = this.props;
+  _addAheadToFlattenedArr = () => {
+    const { flattenedArr, step } = this.props;
     const firstTimeElement = flattenedArr[0];
-    const stepBeforeFirstTimeElement = firstTimeElement.getMinutes() - step;
-    const newFirstTimeElement = firstTimeElement.setMinutes(
+
+    const firstTimeElementCopy = new Date(firstTimeElement);
+
+    // 此处2bugs. 1. 不能直接引用。 会直接修改原时间。
+    const stepBeforeFirstTimeElement = firstTimeElementCopy.getMinutes() - step;
+    const newFirstTimeElement = firstTimeElementCopy.setMinutes(
       stepBeforeFirstTimeElement
     );
+    // 2. 此新数组时间 有个别的月日不对。
     const newFlattenedArr = [new Date(newFirstTimeElement)].concat(
       flattenedArr
     );
+
+    return newFlattenedArr;
+  };
+
+  _getHHmm = date => {
+    if (date instanceof Date) {
+      const hh = date.getHours();
+      const mm = date.getMinutes();
+      const zerofy = num => {
+        return num < 10 ? `0${num}` : `${num}`;
+      };
+      return `${zerofy(hh)}:${zerofy(mm)}`;
+    }
+  };
+
+  _TimeToShape = (startTime, endTime, zone) => {
+    const { heightPercentArr } = this.props;
+    const beginWithZeroHeightPercentArr = [0].concat(heightPercentArr);
+    const startHHmm = this._getHHmm(startTime);
+    const endHHmm = this._getHHmm(endTime);
+    let a = 0;
+    let b = 0;
+    for (let i = 0; i < zone.length; i += 1) {
+      if (i < zone.length - 1) {
+        const before = this._getHHmm(zone[i]);
+        const after = this._getHHmm(zone[i + 1]);
+        if (before <= startHHmm && startHHmm < after) {
+          a = i;
+        }
+        if (before < endHHmm && endHHmm <= after) {
+          b = i + 1;
+        }
+      }
+    }
+    return {
+      top: beginWithZeroHeightPercentArr[a],
+      bottom: beginWithZeroHeightPercentArr[b]
+    };
+  };
+
+  _shapeToTimeElement = (top, bottom, heightPercent) => {
+    const { item } = this.props;
+    const newFlattenedArr = this._addAheadToFlattenedArr();
 
     // TODO: based (top, bottom) in heightPercent, get index. then based index get newFlattenedArr's value.
     let startTime1 = newFlattenedArr[heightPercent.indexOf(top)];
@@ -168,12 +217,11 @@ export default class VerticalLine extends Component {
     let endTime3 = new Date(endTime2).setMonth(item.toDate().getMonth());
 
     return {
-      startTime: new Date(startTime3),
-      endTime: new Date(endTime3)
+      start: new Date(startTime3),
+      end: new Date(endTime3)
     };
   };
 
-  // TODO: need recalculate start & end. start: 0-100, end: 100-0;
   _calculatePostion = (point, heightPercentArr, startOrStop = "start") => {
     let p = null;
     for (let i = 0; i < heightPercentArr.length - 1; i += 1) {
@@ -231,34 +279,56 @@ export default class VerticalLine extends Component {
     );
   };
 
+  // _renderUnconfirmedEvent = () => {
+  //   const { unconfirmedTimes, selectedTop, selectedBottom } = this.state;
+  //   const newArr = [unconfirmedTimes];
+  //   if (!Object.keys(unconfirmedTimes).length) return;
+  //   return newArr.map(i => {
+  //     return (
+  //       <Event
+  //         key={i}
+  //         data={i}
+  //         top={selectedTop}
+  //         bottom={selectedBottom}
+  //         addEvent={this.props.addEvent}
+  //         draggable="true"
+  //       />
+  //     );
+  //   });
+  // };
+
   _renderEvent = arr => {
+    // TODO: 不同时间重叠时要处理，按照时间长短。
     const { unconfirmedTimes, selectedTop, selectedBottom } = this.state;
-    const newArr = [...arr, [unconfirmedTimes]];
-    console.log(unconfirmedTimes, "newArr");
-    return (
-      Object.keys(unconfirmedTimes).length &&
-      newArr.map(i => {
-        return (
-          <Event
-            key={i}
-            top={selectedTop}
-            bottom={selectedBottom}
-            draggable="true"
-          />
-        );
-      })
-    );
+    const newArr = [unconfirmedTimes];
+    const newFlattenedArr = this._addAheadToFlattenedArr();
+    let arr2 = arr;
+    if (Object.keys(unconfirmedTimes).length) {
+      arr2 = [...arr, ...newArr];
+    }
+    return arr2.map((i, index) => {
+      const shape = this._TimeToShape(i.start, i.end, newFlattenedArr);
+      return (
+        <Event
+          key={index}
+          data={i}
+          draggable="true"
+          top={shape.top}
+          bottom={100 - shape.bottom}
+        />
+      );
+    });
   };
 
   render() {
-    const { showSelectionBox, tempStatus1 } = this.state;
+    const { showSelectionBox } = this.state;
+    const { events } = this.props;
     return (
       <Line onMouseDown={this._onMouseDown} ref={this.myRef}>
         {/* {this.renderBackground()}*/}
-        {/* 建议events render 单独写一个子组件。 */}
         {showSelectionBox && this._renderSelectionArea()}
-        <EventContainer>{this._renderEvent([])}</EventContainer>
-        {/* {tempStatus1 && <FollowModal />} */}
+        {/* <EventContainer>{this._renderUnconfirmedEvent()}</EventContainer> */}
+        <EventContainer>{this._renderEvent(events)}</EventContainer>
       </Line>
     );
   }

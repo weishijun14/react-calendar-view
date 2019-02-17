@@ -8,3 +8,13 @@ export function toPercent(point) {
   // str += "%";
   return str;
 }
+
+export function pickMatchTime(time, eventArr) {
+  return eventArr.reduce(function(accumulator, currentValue) {
+    const d = currentValue.start;
+    if (time.isSame(d, "day")) {
+      accumulator.push(currentValue);
+    }
+    return accumulator;
+  }, []);
+}

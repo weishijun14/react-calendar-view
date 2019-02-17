@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import VIEWS from "./Views";
 import transform from "lodash.transform";
+import { views } from "./utils/constants";
 // import ColumnWrapper from "./ColumnWrapper";
 
 export default class Calendar extends Component {
   static defaultProps = {
-    getNow: () => new Date()
+    getNow: () => new Date(),
+    view: views.WEEK
   };
 
   getViews = () => {

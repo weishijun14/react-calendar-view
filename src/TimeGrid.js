@@ -8,6 +8,9 @@ import dates from "./utils/dates";
 import { getSlotMatrics } from "./utils/TimeSlots";
 import { flatten } from "./utils/utils";
 import VerticalLine from "./components/VerticalLine";
+import TimeGridHeader from "./TimeGridHeader";
+
+import { pickMatchTime } from "./utils/utils";
 
 const GridContainer = styled.div({
   height: "100%"
@@ -21,7 +24,6 @@ const ContentContainer = styled.div(props => ({
   display: "flex",
   position: "relative",
   backgroundColor: "#f8f8f8",
-  // height: "1440px",
   flexGrow: 1
 }));
 
@@ -37,18 +39,6 @@ const HorizenLine = styled.div(props => {
   };
 });
 
-// const VerticalLine = styled.div(props => {
-//   return {
-//     height: "100%",
-//     width: "1px",
-//     flexBasis: "14.2%",
-//     borderColor: "rgb(234, 234, 234)",
-//     borderTopWidth: "thin",
-//     borderWidth: "0px 0px 0px 1px",
-//     borderStyle: "solid"
-//   };
-// });
-
 export default class TimeGrid extends Component {
   static defaultProps = {
     step: 30,
@@ -61,6 +51,9 @@ export default class TimeGrid extends Component {
     super(props);
     const { min, max, step, timeslots } = this.props;
     this.slotMetrics = getSlotMatrics({ min, max, step, timeslots });
+    this.state = {
+      events: this.props.events || []
+    };
   }
 
   renderHorizen = heightPercentArr => {
@@ -71,7 +64,14 @@ export default class TimeGrid extends Component {
     });
   };
 
-  renderVertical = (range, heightPercentArr, flattenedArr, step) => {
+  renderVertical = (
+    range,
+    heightPercentArr,
+    flattenedArr,
+    step,
+    events,
+    addEvent
+  ) => {
     return range.map((item, index) => {
       return (
         <VerticalLine
@@ -81,13 +81,32 @@ export default class TimeGrid extends Component {
           heightPercentArr={heightPercentArr}
           flattenedArr={flattenedArr}
           step={step}
+          events={pickMatchTime(item, events)}
+          addEvent={this.addEvent}
         />
       );
     });
   };
 
+  addEvent = params => {
+    this.setState(state => {
+      return {
+        events: state.events.concat([params])
+      };
+    });
+  };
+
   render() {
-    const { start, min, max, step, timeslots, range } = this.props;
+    const {
+      start,
+      min,
+      max,
+      step,
+      timeslots,
+      range,
+      events,
+      view
+    } = this.props;
     const { merge } = dates;
     const groupsLength = this.slotMetrics.groups.length;
     const flattenedArr = flatten(this.slotMetrics.groups);
@@ -99,7 +118,7 @@ export default class TimeGrid extends Component {
     });
     return (
       <GridContainer>
-        <div>TimeGridHeader</div>
+        <TimeGridHeader view={view} range={range} />
         <TimeGridBody>
           <TimeGutter
             step={step}
@@ -110,7 +129,14 @@ export default class TimeGrid extends Component {
           />
           <ContentContainer>
             {this.renderHorizen(heightPercentArr)}
-            {this.renderVertical(range, heightPercentArr, flattenedArr, step)}
+            {this.renderVertical(
+              range,
+              heightPercentArr,
+              flattenedArr,
+              step,
+              events,
+              view
+            )}
           </ContentContainer>
         </TimeGridBody>
       </GridContainer>
